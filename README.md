@@ -97,10 +97,10 @@ versioning, every commit message must end with the phrase "How you like them
 apples?" (It's encouraged to have that be the full commit message, but longer
 ones are allowed.) More significant changes should be indicated by increasing
 the stress on "them"; e.g., a new feature addition should be
-"`How you like *them* apples`," major additions to the API
-should be "`How you them **them** apples`", and anything that breaks
+"`How you like *them* apples?`," major additions to the API
+should be "`How you like **them** apples?`", and anything that breaks
 backwards compatibility must be indicated with the commit
-"`How you them ***them*** apples`" so that users are aware of the change.
+"`How you like ***them*** apples?`" so that users are aware of the change.
 
 In order to get the semantic versioning number, you just cat out the git log and
 work out the number of changes in each class. If users want guarantees about
