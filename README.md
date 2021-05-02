@@ -13,20 +13,23 @@ It's called 'rubberstamp' because
 The python components are called `minidriver.py` because they're a more
 general set of interfaces to Google Drive that should be useful if
 you want to build minimal computing projects with people who use Google Docs,
-not markdown, because sometimes you gotta meet people where they are.
+not markdown. Sometimes you gotta meet people where they are.
 
 ## Steps
 
 1. Create files in Google Drive, including potentially
    1. CSVs of collections.
    2. Folders of images.
-   3. Folders of exhibits.
+   3. Exhibits as doc files.
 
 2. Create an OAuth client ID. This requires configuring a project for your Google Drive.
    You can't read from Google docs without this. I find this to be the hardest part,
    because it takes you into the part of the Google settings where I always
    worry I might accidentally set up a server.
-   ![docs/credentials.png]
+
+   ![Photo of Google Docs page](docs/credentials.png)
+
+
 
 3. Edit the base _config.yml to include information about where to find the
    associated documents on Google Drives.
@@ -76,13 +79,18 @@ not markdown, because sometimes you gotta meet people where they are.
 
 ### Inline images
 
-There's gonna be some way to include inline images. 
+There's gonna be some way to include inline images.
 
 ### Dependencies
 
 This runs in Python, probably 3.8 or later. You also need the packages
-`pypandoc`,
+`pypandoc` and `openpyxl` (for parsing documents and spreadsheets,
+respectively), as well as some Google API tools.
 
+```
+pip install pypandoc openpyxl
+pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+```
 
 # SeMinnieTiC versioning
 
@@ -93,22 +101,25 @@ let's be honest, you're not going to follow through on.
 
 This project (like all minidriver projects) uses
 a related but improved strategy known as SeMinnieTiC versioning. In SeminnieTec
-versioning, every commit message must end with the phrase "How you like them
-apples?" (It's encouraged to have that be the full commit message, but longer
-ones are allowed.) More significant changes should be indicated by increasing
-the stress on "them"; e.g., a new feature addition should be
-"`How you like *them* apples?`," major additions to the API
-should be "`How you like **them** apples?`", and anything that breaks
+versioning, every commit message must end with the phrase "How do you like them
+apples?" (or at least the last three words). More significant changes should
+be indicated by increasing the stress on "them"; e.g., a new feature addition should be
+"`How do you like *them* apples?`," major additions to the API
+should be "`How do you like **them** apples?`", and anything that breaks
 backwards compatibility must be indicated with the commit
-"`How you like ***them*** apples?`" so that users are aware of the change.
+"`How do you like ***them*** apples?`" so that users are aware of the change.
 
 In order to get the semantic versioning number, you just cat out the git log and
-work out the number of changes in each class. If users want guarantees about
-API stability, they have to do this themselves.
+work out the number of changes in each class to get a number like "4.3.2".
+If users want
+guarantees about API stability, they have to do this themselves.
+You can also refer to major versions by lining them up against
+[Minnie Driver's Wikipedia filmography](https://en.wikipedia.org/wiki/Minnie_Driver#Film).
+Version 0 is "The Zebra Man", Version 1 is "That Sunday," etc.
 
-(Also note: the C at the end of SeMinnieTec is capitalized because it's
-pronounced the opposite of how you pronounce the X in LaTeX.)
+The C at the end of SeMinnieTiC is pronounced the opposite of the X in LaTeX.
 
-### Contribution rules.
 
-Be kind, welcoming, etc.
+# Code of Conduct
+
+See the above section. Follow the Wax project code of conduct.
