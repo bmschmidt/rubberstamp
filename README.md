@@ -6,7 +6,7 @@ and for the webpage to be continuously updated.
 
 It's called 'rubberstamp' because
 
-1. It just robotically approves any changes that any user makes to the repo, and
+1. It just robotically approves any changes that any user makes in Google, and
 2. You *could* use a rubber stamp to make a wax seal, but it wouldn't work
    especially well.
 
@@ -15,28 +15,48 @@ general set of interfaces to Google Drive that should be useful if
 you want to build minimal computing projects with people who use Google Docs,
 not markdown. Sometimes you gotta meet people where they are.
 
-## Steps
+## Summary
+
+1. Add a key called `google_drive_id` or `google_drive_ids` to any
+   csv, image, or markdown document in your existing Wax config.
+2. Add Google Oauth credentials to your folder.
+3. Run `rubberstamp my_wax_project 55` in your terminal
+
+Voila! Now remote Google
+Drive spreadsheets and docs will be synced to your folders every 55
+seconds until you end the process.
+
+## Detailed instructions
 
 1. Create files in Google Drive, including potentially
-   1. CSVs of collections.
-   2. Folders of images.
-   3. Exhibits as doc files.
+   1. CSVs about your collections.
+   2. Folders with images.
+   3. Exhibits text as doc files.
 
-2. Create an OAuth client ID. This requires configuring a project for your Google Drive.
-   You can't read from Google docs without this. I find this to be the hardest part,
-   because it takes you into the part of the Google settings where I always
-   worry I might accidentally set up a server.
+2. Create an [OAuth client ID in the Google API settings.](https://developers.google.com/identity/protocols/oauth2)
+   This stores information about your client. If it asks, you only need to give
+   read access--the point here is to let python access documents that you can
+   access while logged into Google.
+   I find this to be the hardest part,
+      because it takes you into the part of the Google settings where I always
+      worry I might accidentally set up a server.
 
-   ![Photo of Google Docs page](docs/credentials.png)
+      ![Photo of Google Docs page](docs/credentials.png)
 
+   Ultimately, you'll end up at the screen above. You want the Oauth 2.0 Client IDs.
 
+   **Note** If using version control, you should change your .gitignore to include
+   `credentials.json` and `token.pickle`, because they include private information
+   about your Google account. If running this on a webserver, make sure the
+   permissions on this file don't accidentally get set to something bad.
 
-3. Edit the base _config.yml to include information about where to find the
-   associated documents on Google Drives.
+3. Edit your Wax project's base _config.yml to include information about
+   where to find the associated documents on Google Drives.
 
-   This looks the same as a basic Wax/Jekyll configuration, except that you
-   can place a key called `google_drive_id` inside any field. If so, rather
-   using local markdown/images/csvs to generate the wax site, instead the
+   You can place a key called `google_drive_id` inside any field in collections
+   or in menu['Exhibits']. (For now, you have to edit the source code to pull
+   anywhere else.) If so, rather
+   using local markdown/images/csvs to generate the wax site, the
    relevant files will be retrieved from Google Drive. To avoid filename confusion,
    you have to use the Google Drive ID, which creates inscrutable file names.
    But it's not so hard to find (it's just the bit at the end of any URL in
@@ -52,34 +72,59 @@ not markdown. Sometimes you gotta meet people where they are.
      collections:
        exhibits:
          output: true
-         # Every google doc in this drive will be converted to Markdown and become
-         # an exhibit.
-         google_drive_id: 1En1kFsl6dlW4hRhf1OpBgTIpjgLC5SZI
-       Rhee: # name of collection
+       nara: # name of collection
          output: true # makes sure pages are output as html files
          layout: 'generic_collection_item' # the layout for the pages to use
          metadata:
-           source: 'A13053834.csv' # path to the metadata file within `_data`
-           google_drive_id: '1gbPtPQtHpOClQXJ8CjMGGj4B6kTN_UkpX6XrCCCD278/Elijah'
+           google_drive_id: '1gbPtPQtHpOClQXJ8CjMGGj4B6kTN_UkpX6XrCCCD278/main' #
+           # The above is a google Sheets file. /main at the end means "use the sheet 'main'"
+           source: 'nara.csv' # <- The file for wax to use. This will be **created**
+           # or *overwritten* from the Google Sheet; there's a one-way flow
+           # of information from Google to here, so you should not edit this
+           # document directly.
          images:
-           source: 'raw_images/Rhee' # path to the directory of images within `_data`--w
-           # A google drive *folder*; all files in this, including subdirectories,
-           # will be synced to the drive above based on modification times.
-           google_drive_id: '1RofzC0sDYoUeiSu4DOveDEAQTakaG12D'
-       A002475884: # name of collection
-         output: true # makes sure pages are output as html files
-         layout: 'generic_collection_item' # the layout for the pages to use
-         metadata:
-           source: 'A002475884.csv' # path to the metadata file within `_data`
-           google_drive_id: '1gbPtPQtHpOClQXJ8CjMGGj4B6kTN_UkpX6XrCCCD278/Eunbin'
-         images:
-           source: 'raw_images/A002475884' # path to the directory of images within `_data`
-           google_drive_id: '1VnhmXM15cyNX3TSBjj6oFpYan0aGYlBV'
+           source: 'raw_images/nara' # <- This dir will be created.
+           google_drive_ids:
+             - '1RofzC0sDYoUeiSu4DOveDEAQTakaG12D' # <- A Google
+                # drive *folder*; all files in this, including subdirectories,
+                # will be synced to the dir above if the info is out of date.
+             - 'Fadsflkj54207gDGsdnjf50287353fDFF' # <- A second Gdrive folder
+                # Images here will also be synced into raw_images/nara. Filenames
+                # are the ids, as in Wax.
+      [...] {more Jekyll Stuff}
+      menu:
+        - label: 'About'
+          sub:
+            - label: 'Wax'
+              link: '/about/'
+            - label: 'Credits'
+              link: '/credits/' #<- All unchanged.
+        - label: 'Exhibits'
+          sub:
+            - label: "Ben's Story" # The Menu label.
+              link: '/exhibits/ben/' # A destination for the exhibit.
+              google_drive_id: 1-BTA9-vWWMgH33KhtDFqxugxLbRrp-lTmp5d1zD5SHg
+              # The Google Docs *Document* with text of a narration. This will
+              # turn into Markdown at /exhibits/ben/. You can use liquid templates
+              # in Google Docs directly.
+
+            - label: "Mario's Story"
+              link: '/exhibits/mario/'
+              google_drive_id: 1RY4chFp81ENysfy8cg_-Sel-Z9EDIs5G_IKGuR36mY8  
+              # A Second exhibit in the "Exhibits" tab.
   ```
 
 ### Inline images
 
-There's gonna be some way to include inline images.
+Inline exhibits can include Wax images by using the pid (filename) of the image.
+
+For example, if the following is in your Google Doc:
+
+```
+{% include inline_image.html collection="nara" pid="a007963988_04" %}
+```
+
+The corresponding image will be inserted.
 
 ### Dependencies
 

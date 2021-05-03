@@ -56,7 +56,8 @@ def create_service():
 def get_files(drive_id, service, recursively = True):
     files = service.files().list(q=f"'{drive_id}' in parents",
                                       spaces='drive',
-                                      pageSize=100, fields="nextPageToken, files(kind,mimeType, id, name, modifiedTime)").execute()
+                                      pageSize=100,
+                                      fields="nextPageToken, files(kind,mimeType, id, name, modifiedTime)").execute()
     returnval = []
     for file in files['files']:
         file['path'] = Path(file['name'])
@@ -78,6 +79,7 @@ def local_is_outdated(file:dict, local_path:Path):
     return False
 
 def sync_directory(drive_id, local_dir, service):
+    print(f"Syncing directory {drive_id} to {local_dir}")
     for file in get_files(drive_id, service, recursively = True):
         path = local_dir / file['path']
         path.parent.mkdir(exist_ok = True, parents = True)
@@ -92,12 +94,12 @@ def download_file(file_id: str, destination: Path, service):
     # From the google drives docs, lightly edited.
     # Only for images--docs and sheets require a different treatment.
     request = service.files().get_media(fileId=file_id)
+    print(fsync"Downloading {file_id} to {destination}")
     fh = destination.open(mode = "wb")
     downloader = http.MediaIoBaseDownload(fh, request)
     done = False
     while done is False:
         status, done = downloader.next_chunk()
-        print("Download %d%%." % int(status.progress() * 100))
 
 def sync_doc_or_sheet(file: Union[str, dict], destination: Path, service):
     """
@@ -116,6 +118,7 @@ def sync_doc_or_sheet(file: Union[str, dict], destination: Path, service):
     file_id = file['id']
 
     if local_is_outdated(file, destination):
+        print(f"Downloading {file['name']} to {destination}.")
         request = service.files().export_media(fileId=file_id,
                          mimeType=mimeType)
         fh = destination.open("wb")
