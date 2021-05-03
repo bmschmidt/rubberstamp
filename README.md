@@ -17,14 +17,37 @@ not markdown. Sometimes you gotta meet people where they are.
 
 ## Summary
 
+0. Install the program: `pip install git+https://github.com/bmschmidt/rubberstamp`
+
 1. Add a key called `google_drive_id` or `google_drive_ids` to any
-   csv, image, or markdown document in your existing Wax config.
-2. Add Google Oauth credentials to your folder.
-3. Run `rubberstamp my_wax_project 55` in your terminal
+   csv, image, or markdown document in your Jekyll `_config.yaml` that
+   you want to maintain on Google Drive.
+
+2. Create a `credentials.json` file in your Google accounts to be able
+   to access them.
+
+3. Run `rubberstamp my_wax_project 55` in your terminal.
 
 Voila! Now remote Google
 Drive spreadsheets and docs will be synced to your folders every 55
 seconds until you end the process.
+
+## Installation
+
+The executable is bundled into a Python program that you can install from
+github.
+
+```
+pip install git+https://github.com/bmschmidt/rubberstamp
+```
+
+If your	computer has Python 2 installed	(as do some Macs),
+you may	need to	run:
+`pip3 install git+https://github.com/bmschmidt/rubberstamp`
+instead.
+
+This will install an executable	called 'rubberstamp' into
+your system.
 
 ## Detailed instructions
 
@@ -48,14 +71,15 @@ seconds until you end the process.
    **Note** If using version control, you should change your .gitignore to include
    `credentials.json` and `token.pickle`, because they include private information
    about your Google account. If running this on a webserver, make sure the
-   permissions on this file don't accidentally get set to something bad.
+   permissions on this file don't accidentally allow them to be downloaded (this
+   is unlikely.)
 
 3. Edit your Wax project's base _config.yml to include information about
    where to find the associated documents on Google Drives.
 
    You can place a key called `google_drive_id` inside any field in collections
    or in menu['Exhibits']. (For now, you have to edit the source code to pull
-   anywhere else.) If so, rather
+   anywhere else; I'm curious where it might be needed.) If so, rather
    using local markdown/images/csvs to generate the wax site, the
    relevant files will be retrieved from Google Drive. To avoid filename confusion,
    you have to use the Google Drive ID, which creates inscrutable file names.
@@ -67,6 +91,10 @@ seconds until you end the process.
    give the path to a Google Sheet; you may optionally put a slash at the end,
    (e.g.: '1gbPtPQtHpOClQXJ8CjMGGj4B6kTN_UkpX6XrCCCD278/Elijah') in which case
    the tab with that name will be fetched.
+
+   If you use `google_drive_ids` instead of `google_drive_id`, multiple
+   directories will be synced to the same root. (If, say, multiple students
+   are uploading to their own Google Drive.)
 
   ```
      collections:
@@ -83,7 +111,7 @@ seconds until you end the process.
            # of information from Google to here, so you should not edit this
            # document directly.
          images:
-           source: 'raw_images/nara' # <- This dir will be created.
+           source: 'raw_images/nara' # <- This dir will be created if it doesn't exist.
            google_drive_ids:
              - '1RofzC0sDYoUeiSu4DOveDEAQTakaG12D' # <- A Google
                 # drive *folder*; all files in this, including subdirectories,
@@ -124,16 +152,20 @@ For example, if the following is in your Google Doc:
 {% include inline_image.html collection="nara" pid="a007963988_04" %}
 ```
 
-The corresponding image will be inserted.
+The corresponding image will be inserted in that place in your document.
 
 ### Dependencies
 
-This runs in Python, probably 3.8 or later. You also need the packages
+This runs in Python; it's tested in I think 3.7, and probably requires
+a fairly modern version of Python 3.0. You also need the packages
 `pypandoc` and `openpyxl` (for parsing documents and spreadsheets,
-respectively), as well as some Google API tools.
+respectively), `pyyaml` (for config parsing), as well as some Google API tools.
+
+They should be installed by the pip command, but you can do it manually
+like so:
 
 ```
-pip install pypandoc openpyxl
+pip install pypandoc openpyxl pyyaml
 pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
 
@@ -167,4 +199,6 @@ The C at the end of SeMinnieTiC is pronounced the opposite of the X in LaTeX.
 
 # Code of Conduct
 
-See the above section. Follow the Wax project code of conduct.
+Follow the Wax Tasks [code of conduct](https://github.com/minicomp/wax_tasks/blob/main/CODE_OF_CONDUCT.md)
+Also, see the section above. If you find the above to be "abusive, harassing, or otherwise unacceptable behavior",
+I guess I'll evaluate your pull request on the merits...
