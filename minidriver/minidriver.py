@@ -94,7 +94,7 @@ def download_file(file_id: str, destination: Path, service):
     # From the google drives docs, lightly edited.
     # Only for images--docs and sheets require a different treatment.
     request = service.files().get_media(fileId=file_id)
-    print(fsync"Downloading {file_id} to {destination}")
+    print(f"Downloading {file_id} to {destination}")
     fh = destination.open(mode = "wb")
     downloader = http.MediaIoBaseDownload(fh, request)
     done = False
