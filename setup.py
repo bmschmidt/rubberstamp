@@ -10,6 +10,8 @@ setup(
             'rubberstamp = minidriver.rubberstamp:rubberstamp'
         ],
     },
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     description="Minimal Computing Interfaces to Google Drive",
     url="http://github.com/bmschmidt/minidriver",
     author="Benjamin Schmidt",

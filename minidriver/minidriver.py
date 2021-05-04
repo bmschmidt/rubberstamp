@@ -12,6 +12,7 @@ from typing import Union, List
 import csv
 from openpyxl import load_workbook
 import pypandoc
+import importlib
 
 """
 
@@ -154,6 +155,11 @@ def docx_to_md(source: Path, dest: Path, metadata:dict):
     args = ['--standalone']
     for k, v in metadata.items():
         args.append(f'--metadata={k}:{v}')
+    from pathlib import Path
+    with importlib.resources.path("minidriver", "lib") as f:
+        string = str(f / "filter.lua")
+        args.append(f'--lua-filter')
+        args.append(string)
     output = pypandoc.convert_file(str(source), 'md', extra_args=args)
     with dest.open("w") as fout:
         fout.write(output)

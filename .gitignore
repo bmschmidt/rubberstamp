@@ -2,3 +2,4 @@ credentials.json
 token.pickle
 .ipynb_checkpoints/
 __pycache__
+*egg-info
