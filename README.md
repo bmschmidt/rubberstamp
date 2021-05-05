@@ -1,6 +1,6 @@
 # Rubberstamp
 
-This is a recipe for continuously updating a wax site from Google drive.
+This is a recipe for continuously updating a [Wax site](https://github.com/minicomp/wax) from Google drive.
 The point is to allow multiple people to collaborate on a project simultaneously,
 and for the webpage to be continuously updated.
 
@@ -12,8 +12,10 @@ It's called 'rubberstamp' because
 
 The python components are called `minidriver.py` because they're a more
 general set of interfaces to Google Drive that should be useful if
-you want to build minimal computing projects with people who use Google Docs,
-not markdown. Sometimes you gotta meet people where they are.
+you want to build minimal computing projects while collaborating with people who use Google Docs,
+not markdown. For example, to build a jekyll site using [ed](https://github.com/minicomp/ed)
+you'd write an adapter called "Driver's Ed."
+Sometimes you gotta meet people where they are. 
 
 ## Summary
 
