@@ -7,12 +7,14 @@ from google.auth.transport.requests import Request
 from googleapiclient import http
 import datetime
 import yaml
+import re
 from pathlib import Path
 from typing import Union, List
 import csv
 from openpyxl import load_workbook
 import pypandoc
 import importlib
+import logging
 
 """
 
@@ -57,18 +59,19 @@ def create_service():
 def get_files(drive_id, service, recursively = True):
     files = service.files().list(q=f"'{drive_id}' in parents",
                                       spaces='drive',
-                                      pageSize=100,
+                                      pageSize=50,
                                       fields="nextPageToken, files(kind,mimeType, id, name, modifiedTime)").execute()
-    returnval = []
     for file in files['files']:
+        #### WHY ALEX AND MARII WHY???
         file['path'] = Path(file['name'])
         if file['mimeType'].endswith("apps.folder") and recursively:
             for subfile in get_files(file['id'], service):
                 subfile['path'] = file['path'] / subfile['path']
-                returnval.append(subfile)
+                yield subfile
         else:
-            returnval.append(file)
-    return returnval
+            if not "google" in file['mimeType']:
+                # Can't handle google docs.                
+                yield file
 
 def local_is_outdated(file:dict, local_path:Path):
     assert file['modifiedTime'].endswith("Z") #i.e., make sure Google still returns times as UTC
@@ -78,6 +81,31 @@ def local_is_outdated(file:dict, local_path:Path):
     if not remote_modified_time.timestamp() < local_path.stat().st_mtime:
         return True
     return False
+
+def flatten_wax_image_dir(drive_id: str, local_dir, service):
+    """
+    Find all images in the given dir, and download them.
+    Some guesswork to allow nested google drive folders.
+    """
+    files = get_files(drive_id, service, recursively = True)
+    num_yielded = 0
+    for file in files:
+        num_yielded += 1
+        if file['mimeType'] == 'image/jpeg':
+          path = file['path']
+          raw_name = path.with_suffix("").name
+          # If it's just two digits, assume it's a subelement in 
+          # something else.
+          if re.search(r"^[0-9]{1,2}$", raw_name):
+            dest = local_dir / path.parent.name / path.name
+          else:
+            dest = local_dir / path.name
+          if local_is_outdated(file, dest):
+            download_file(file['id'], dest, service)
+    if num_yielded == 0:
+        logging.warning(f"No files found for google drive ID {drive_id}: "
+        "this can occur if the Google user for your credentials "
+        "is not allowed to access it.")
 
 def sync_directory(drive_id, local_dir, service):
     print(f"Syncing directory {drive_id} to {local_dir}")
@@ -89,13 +117,16 @@ def sync_directory(drive_id, local_dir, service):
             continue
         if local_is_outdated(file, path):
             print("Fetching", file)
+            path.parent.mkdir(exist_ok = True, parents = True)
+            download_file(file['id'], path, service)
             download_file(file['id'], path, service)
 
 def download_file(file_id: str, destination: Path, service):
     # From the google drives docs, lightly edited.
     # Only for images--docs and sheets require a different treatment.
-    request = service.files().get_media(fileId=file_id)
     print(f"Downloading {file_id} to {destination}")
+    destination.parent.mkdir(exist_ok = True, parents = True)
+    request = service.files().get_media(fileId=file_id)
     fh = destination.open(mode = "wb")
     downloader = http.MediaIoBaseDownload(fh, request)
     done = False
@@ -142,6 +173,11 @@ def xlsx_to_csv(source: Path, dest: Path, sheet = None):
             c = csv.writer(f)
             for r in sh.rows:
                 vals = [cell.value for cell in r]
+                #XXXXX REALLY BAD BUT NECESSARY BECAUSE WAX IS WEIRD ABOUT LOWERCASE!!!!
+                if vals[0] is None:
+                    logging.error(f"No PID for {vals}")
+                    continue
+                vals[0] = vals[0].lower()
                 # Empty csv rows screw up things.
                 if len([v for v in vals if v is not None and v != ""]):
                     c.writerow(vals)
@@ -151,10 +187,14 @@ def docx_to_md(source: Path, dest: Path, metadata:dict):
     # Yaml metadata that lives in the Markdown
     assert dest.suffix == ".md"
     assert source.suffix == ".docx"
-    print("Running pandoc...")
+    if dest.exists() and not source.stat().st_mtime > dest.stat().st_mtime:
+        return
+    print(f"Running pandoc for {source} -> {dest}")
     args = ['--standalone']
     for k, v in metadata.items():
         args.append(f'--metadata={k}:{v}')
+    print("Dangerous media extraction.")
+    args.append(f"--extract-media=./img")
     from pathlib import Path
     with importlib.resources.path("minidriver", "lib") as f:
         string = str(f / "filter.lua")

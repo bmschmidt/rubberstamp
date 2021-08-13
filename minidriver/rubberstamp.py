@@ -68,10 +68,11 @@ def stamp(root):
                 if not 'source' in imgs:
                     raise KeyError("You must include a wax source as well as a google_drive_id for collection", name)
                 dest = Path(root, "_data", imgs['source'])
-                minidriver.sync_directory(imgs['google_drive_id'], dest, service)
+                minidriver.flatten_wax_image_dir(imgs['google_drive_id'], service)
             if 'google_drive_ids' in imgs:
                 for id in imgs['google_drive_ids']:
                     if not 'source' in imgs:
                         raise KeyError("You must include a wax source as well as a google_drive_id for collection", name)
                     dest = Path(root, "_data", imgs['source'])
-                    minidriver.sync_directory(id, dest, service)
+                    minidriver.flatten_wax_image_dir(id, dest, service)
+
